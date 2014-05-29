@@ -1,5 +1,5 @@
 // Highwater is a server that directs content to the kissmetrics metrics site
-package highwater
+package main
 
 import (
 	"crypto/sha1"
@@ -19,7 +19,7 @@ type highwater struct {
 
 var instance *highwater = nil
 
-func Init(host, apikey, salt string) {
+func InitMetrics(host, apikey, salt string) {
 	var once sync.Once
 	once.Do(func() { instance = &highwater{host, apikey, salt} })
 }
