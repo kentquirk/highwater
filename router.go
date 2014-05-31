@@ -27,6 +27,13 @@ func NamedUserHandler(w http.ResponseWriter, req *http.Request) {
 	NamedUser(userid, eventname, parms)
 }
 
+func TokenUserHandler(w http.ResponseWriter, req *http.Request) {
+	eventname := req.URL.Query().Get(":eventname")
+	parms := CopyQueryExcept(req.URL.Query(), []string{":eventname"})
+	token := req.Header.Get("x-tidepool-session-token")
+	TokenUser(token, eventname, parms)
+}
+
 func InitRouter(port int) {
 	r := pat.New()
 	r.Get("/user/{userid}/{eventname}", NamedUserHandler)

@@ -4,6 +4,7 @@ package main
 import (
 	"crypto/sha1"
 	"fmt"
+	"github.com/kentquirk/userapiclient"
 	"io"
 	"log"
 	"net/http"
@@ -15,13 +16,22 @@ type highwater struct {
 	host   string
 	apikey string
 	salt   string
+	client *userapiclient.UserApiClient
 }
 
 var instance *highwater = nil
 
-func InitMetrics(host, apikey, salt string) {
+func InitMetrics(metricshost, apikey, salt,
+	userapihost, serversecret string) {
 	var once sync.Once
-	once.Do(func() { instance = &highwater{host, apikey, salt} })
+	once.Do(func() {
+		instance = &highwater{
+			metricshost,
+			apikey,
+			salt,
+			userapiclient.NewApiClient("go_highwater", userapihost, serversecret),
+		}
+	})
 }
 
 func saveMetrics(user, event string, parms url.Values) {
@@ -59,4 +69,12 @@ func hash_id(id string, length int) string {
 // NamedUser creates a log entry with a hashed key, given a userid
 func NamedUser(userid, event string, parms url.Values) {
 	saveMetrics(hash_id(userid, 10), event, parms)
+}
+
+// TokenUser creates a log entry with a hashed key by extracting the userid
+// from the token passed in
+func TokenUser(token, event string, parms url.Values) {
+	if td, err := instance.client.CheckToken(token); err == nil {
+		saveMetrics(hash_id(td.UserID, 10), event, parms)
+	}
 }
