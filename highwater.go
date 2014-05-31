@@ -1,17 +1,21 @@
-// Highwater is a server that directs content to the kissmetrics metrics site
+// Highwater is a server that directs content to the kissmetrics metrics site.
 package main
 
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/kentquirk/userapiclient"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"sync"
+
+	"github.com/kentquirk/userapiclient"
 )
 
+// This is for internal use -- it's a singleton
+// because the client is reusable and reentrant
+// so let's not go around creating lots of them.
 type highwater struct {
 	host   string
 	apikey string
@@ -19,11 +23,13 @@ type highwater struct {
 	client *userapiclient.UserApiClient
 }
 
+// Here's the instance for the singleton
 var instance *highwater = nil
 
+// This is the init function
 func InitMetrics(metricshost, apikey, salt,
 	userapihost, serversecret string) {
-	var once sync.Once
+	var once sync.Once // and here's how we do the singleton
 	once.Do(func() {
 		instance = &highwater{
 			metricshost,
@@ -34,6 +40,8 @@ func InitMetrics(metricshost, apikey, salt,
 	})
 }
 
+// saveMetrics is a helper function intended to make it easy to implement the other
+// functions
 func saveMetrics(user, event string, parms url.Values) {
 	metricsUrl, err := url.Parse(instance.host)
 	if err != nil {
@@ -56,7 +64,8 @@ func saveMetrics(user, event string, parms url.Values) {
 	}
 }
 
-// hash_id generates the same values as the hash function in the javascript highwater.
+// hash_id generates the same values as the hash function in the javascript highwater, so
+// we'll get the same users logged the same way in metrics.
 func hash_id(id string, length int) string {
 	hash := sha1.New()
 	io.WriteString(hash, instance.salt)

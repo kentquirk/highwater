@@ -8,5 +8,5 @@ func main() {
 		"http://localhost:9107",
 		"This needs to be the same secret everywhere. YaHut75NsK1f9UKUXuWqxNN0RUwHFBCy",
 	)
-	InitRouter(6060)
+	InitRouter(9292)
 }
